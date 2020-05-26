@@ -62,6 +62,9 @@ SHELL ["/bin/bash", "-c"]
 # the directory structure is unified, the links for /opt/opennms/share
 # and /opt/opennms/logs introduced by RPM installs are removed.
 
+RUN ping -c 1 -t 5 yum-repo
+RUN curl --fail -L -o - http://yum-repo:19990/repodata/repomd.xml
+
 RUN if [[ "$(ls -1 /tmp/tarball/*.tar.gz 2>/dev/null | wc -l)" != 0 ]]; then \
         mkdir -p /opt/opennms && tar xzf /tmp/tarball/opennms-*.tar.gz -C /opt/opennms && \
         cp -r /opt/opennms/etc /opt/opennms/share/etc-pristine; \

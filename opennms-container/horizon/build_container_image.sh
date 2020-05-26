@@ -6,6 +6,7 @@ set -o errexit
 # Use the error status of the first failure, rather than that of the last item in a pipeline.
 set -o pipefail
 
+[ -n "${YUM_CONTAINER_NAME}" ] || YUM_CONTAINER_NAME="yum-repo"
 [ -n "${BUILD_NETWORK}"  ] || BUILD_NETWORK="opennms-build-network"
 
 MYDIR="$(dirname "$0")"
@@ -20,11 +21,10 @@ source ../version-tags.sh
 RPMDIR="$(cd ../../target/rpm/RPMS/noarch; pwd -P)"
 ../launch_yum_server.sh "$RPMDIR"
 
-IPADDR="$(../get_yum_server_ip.sh)"
 cat <<END >rpms/opennms-docker.repo
 [opennms-repo-docker-common]
 name=Local RPMs to Install from Docker
-baseurl=http://${IPADDR}:19990/
+baseurl=http://${YUM_CONTAINER_NAME}:19990/
 enabled=1
 gpgcheck=0
 END

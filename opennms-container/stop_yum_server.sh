@@ -2,6 +2,6 @@
 
 set -e
 
-[ -n "$CONTAINER_NAME" ] || CONTAINER_NAME="yum-repo"
+[ -n "$YUM_CONTAINER_NAME" ] || YUM_CONTAINER_NAME="yum-repo"
 
-exec docker rm -f "${CONTAINER_NAME}" 2>/dev/null
+exec docker rm -f "${YUM_CONTAINER_NAME}" 2>/dev/null

@@ -12,14 +12,14 @@ RPMDIR="$1"; shift || :
 PORT="$1"; shift || :
 OCI="opennms/yum-repo:1.0.0-b4609"
 
-[ -n "${CONTAINER_NAME}" ] || CONTAINER_NAME="yum-repo"
+[ -n "${YUM_CONTAINER_NAME}" ] || YUM_CONTAINER_NAME="yum-repo"
 [ -n "${BUILD_NETWORK}"  ] || BUILD_NETWORK="opennms-build-network"
 
 err_report() {
   echo "error on line $1" >&2
   echo "docker logs:" >&2
   echo "" >&2
-  docker logs "${CONTAINER_NAME}" >&2
+  docker logs "${YUM_CONTAINER_NAME}" >&2
   exit 1
 }
 
@@ -48,13 +48,13 @@ echo "=== stopping old yum servers, if necessary ==="
 ./stop_yum_server.sh >/dev/null 2>&1 || :
 
 echo "=== launching yum server ==="
-docker run --rm --detach --name "${CONTAINER_NAME}" --volume "${RPMDIR}:/repo" --network "${BUILD_NETWORK}" --publish "${PORT}:${PORT}" "${OCI}"
+docker run --rm --detach --name "${YUM_CONTAINER_NAME}" --volume "${RPMDIR}:/repo" --network "${BUILD_NETWORK}" --publish "${PORT}:${PORT}" "${OCI}"
 
 echo "=== waiting for server to be available ==="
 COUNT=0
 while [ "$COUNT" -lt 30 ]; do
   COUNT="$((COUNT+1))"
-  if [ "$( (docker logs "${CONTAINER_NAME}" 2>&1 || :) | grep -c 'server started' )" -gt 0 ]; then
+  if [ "$( (docker logs "${YUM_CONTAINER_NAME}" 2>&1 || :) | grep -c 'server started' )" -gt 0 ]; then
     echo "READY"
     break
   fi
@@ -65,6 +65,6 @@ if [ "$COUNT" -eq 30 ]; then
   echo "gave up waiting for server"
   echo "docker logs:"
   echo ""
-  docker logs "${CONTAINER_NAME}"
+  docker logs "${YUM_CONTAINER_NAME}"
   exit 1
 fi
