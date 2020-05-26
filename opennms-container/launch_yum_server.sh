@@ -44,20 +44,17 @@ cd "$MYDIR"
 echo "=== creating ${BUILD_NETWORK} network, if necessary ==="
 ./create_network.sh "${BUILD_NETWORK}"
 
+echo "=== stopping old yum servers, if necessary ==="
+./stop_yum_server.sh >/dev/null 2>&1 || :
+
 echo "=== launching yum server ==="
 docker run --rm --detach --name "${CONTAINER_NAME}" --volume "${RPMDIR}:/repo" --network "${BUILD_NETWORK}" --publish "${PORT}:${PORT}" "${OCI}"
 
-YUMIP="$(./get_yum_server_ip.sh)"
-YUMHOST=localhost
-if ping -c 1 -t 2 "$YUMIP" >/dev/null 2>&1; then
-  YUMHOST="$YUMIP"
-fi
-
-echo "=== waiting for server to be available (testing $YUMHOST:$PORT) ==="
+echo "=== waiting for server to be available ==="
 COUNT=0
 while [ "$COUNT" -lt 30 ]; do
   COUNT="$((COUNT+1))"
-  if curl --fail --silent "http://${YUMHOST}:${PORT}/repodata/repomd.xml" >/dev/null 2>&1; then
+  if [ "$( (docker logs "${CONTAINER_NAME}" 2>&1 || :) | grep -c 'server started' )" -gt 0 ]; then
     echo "READY"
     break
   fi
